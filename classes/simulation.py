@@ -123,8 +123,8 @@ def hexagonalNeighboursBooleanTensor(columns,rows):
     """
     booleanTensor = np.ones((4,rows,columns), dtype=bool)
 
-    roll_0 = np.zeros(x, dtype=bool)
-    roll_1 = np.zeros(x, dtype=bool)
+    roll_0 = np.zeros(columns, dtype=bool)
+    roll_1 = np.zeros(columns, dtype=bool)
     rightNeighbours = np.zeros((rows,columns), dtype=bool)
 
     for i in range(1,columns,2):
