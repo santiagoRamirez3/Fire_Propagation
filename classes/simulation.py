@@ -1,5 +1,5 @@
 import numpy as np
-import teselado
+from classes import teselado
 
 zeroArray = np.zeros(1)
 
@@ -53,54 +53,77 @@ class forestFire():
         for i, neigh in enumerate(self.neighbours):
             x,y = neigh
             tensor[i] = np.roll(self.forest, (-x,y), axis=(1,0))
-            #=============================================================================
-            # Maybe some way could be [j+i: , :] where i don't know what i,j are ajjajaja
-            #=============================================================================
             if x:
                 if x == 1.:
                     tensor[i, : , -1 ] = 0
                 if x == -1.:
                     tensor[i, : , 0 ] = 0
                 else:
-                    continue # Another condition and method for second neighbours and more
+                    continue # Maybe Another condition and method for second neighbours and more
             if y:
                 if y == 1.:
                     tensor[i, 0 , : ] = 0
                 if y == -1.:
                     tensor[i, -1 , : ] = 0
                 else:
-                    continue # Another condition and method for second neighbours and more
+                    continue # Maybe Another condition and method for second neighbours and more
             else:
                 continue
         tensor = tensor * self.neighboursBoolTensor
         return tensor
-    
+#=============================================================================================================================================
 class squareForest(forestFire):
+    """
+    This is a subclass of the general class forestFire, but specifily designed for simulate
+    the propagation in a central square distribution of trees
+    """
     def __init__(self, burningThreshold:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray):
         neighboursBoolTensor = np.ones((4,*initialForest.shape), dtype=bool)
         neighbours = [(-1,0),(1,0),(0,1),(0,-1)]
         super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography)
     
-    def plot(self):
+    def animate(self, fileName, interval=100):
+        teselado.squareAnimationPlot(fileName, self.historicalFirePropagation, interval)
         return
-
+    
+    def plot(self, fileName):
+        return
+#=============================================================================================================================================
 class heaxgonalForest(forestFire):
+    """
+    This is a subclass of the general class forestFire, but specifily designed for simulate
+    the propagation in a central hexagonal distribution of trees
+    """
+    def __init__(self, burningThreshold:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray):
+        neighboursBoolTensor = np.ones((6,*initialForest.shape), dtype=bool)
+        neighbours = [(-1,0),(1,0),(0,1),(0,-1),(1,1),(-1,-1)]
+        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography)
+    
+    def animate(self, fileName, interval=100):
+        teselado.hexagonalAnimationPlot(filename=fileName,
+                                        historical= self.historicalFirePropagation,
+                                        interval=interval,
+                                        size=self.forestSize)
+        return
+    
+    def plot(self, fileName):
+        return
+#=============================================================================================================================================
+class triangularForest(forestFire):
+    """
+    This is a subclass of the general class forestFire, but specifily designed for simulate
+    the propagation in a central triangular distribution of trees
+    """
     def __init__(self, burningThreshold:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray):
         rows,columns = initialForest.shape
         neighboursBoolTensor = hexagonalNeighboursBooleanTensor(columns,rows)
         neighbours = [(-1,0),(1,0),(0,1),(0,-1)]
         super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography)
     
-    def plot(self):
+    def animate(self, fileName, interval=100):
         return
-
-class triangularForest(forestFire):
-    def __init__(self, burningThreshold:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray):
-        neighboursBoolTensor = np.ones((6,*initialForest.shape), dtype=bool)
-        neighbours = [(-1,0),(1,0),(0,1),(0,-1),(1,1),(-1,-1)]
-        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography)
     
-    def plot(self):
+    def plot(self, fileName):
         return
 
 #=======================================================================================
