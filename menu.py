@@ -7,10 +7,9 @@ def menu():
                             MENU: CHOOSE ONE OF THE FOLLOWING OPTIONS
     ----------------------------------------------------------------------------------------
     
-    1   Configurar tipo de teselado
-    2   Generar simulaciones
-    3   ..
-    4   ..
+    1   Run squared Fire and generate gif
+    2   Calculate propagation time graph as a function of p
+    3   Determine the percolation threshold P_c
     
     '''
     
