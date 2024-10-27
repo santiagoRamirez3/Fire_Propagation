@@ -29,7 +29,6 @@ def percolation_check(array):
 # ===============================================================
 
 
-
 zeroArray = np.zeros(1)
 
 class forestFire():
@@ -67,22 +66,21 @@ class forestFire():
                 # Record time propagation in terms of iterations
                 propagationTime += 1
                 
+                neighboursTensor = self.createNeighbourTensor()
+                couldPropagate = np.sum(neighboursTensor == 2, axis=0)
+
                 burningTrees = (self.forest == 2)
 
                 probabilityMatrixForest = np.random.rand(*self.forestSize)
+                probabilityMatrixForest = probabilityMatrixForest ** couldPropagate
 
-                #=====================================================================================================
+                #-----------------------------------------------------------------------------------------------------
                 # Here could appear a function to modificate probabilityMatrixForest depending of wind and topography
-                #=====================================================================================================
+                #-----------------------------------------------------------------------------------------------------
 
-                #couldBurn = (probabilityMatrixForest <= self.burningThreshold)
                 couldBurn = (probabilityMatrixForest <= p)
 
-                neighboursTensor = self.createNeighbourTensor()
-                couldPropagate = np.logical_or.reduce(neighboursTensor == 2, axis=0)
-                newBurningTrees = (self.forest == 1) & couldBurn & couldPropagate
-
-                # implementar potencia de vecinos
+                newBurningTrees = (self.forest == 1) & couldBurn #& couldPropagate
 
                 # Update forest matrix for the next step
                 self.forest[burningTrees] = 3
@@ -109,14 +107,14 @@ class forestFire():
             if x:
                 if x == 1.:
                     tensor[i, : , -1 ] = 0
-                if x == -1.:
+                elif x == -1.:
                     tensor[i, : , 0 ] = 0
                 else:
                     continue # Maybe Another condition and method for second neighbours and more
             if y:
                 if y == 1.:
                     tensor[i, 0 , : ] = 0
-                if y == -1.:
+                elif y == -1.:
                     tensor[i, -1 , : ] = 0
                 else:
                     continue # Maybe Another condition and method for second neighbours and more
@@ -124,8 +122,11 @@ class forestFire():
                 continue
         tensor = tensor * self.neighboursBoolTensor
         return tensor
-    
-    
+
+    #-------------------------------------------------------------------------------------------------
+    # Methods to calculate statistic params of many simulations
+    #-------------------------------------------------------------------------------------------------
+
     def propagationTime(self,saveRoute:str, n:int,m:int, matrix:np.ndarray):
         '''
          args: 
@@ -155,7 +156,7 @@ class forestFire():
         plt.errorbar(P, meanFinaltimes, yerr=meanFinaltimesStd, capsize=5, ecolor='red', marker='o', linestyle='None')
         plt.xlabel('$P$')
         plt.ylabel('$t(p)$')
-        plt.title('Burning time as a function of p\nErrorbar = 1$\sigma$')
+        plt.title(r'Burning time as a function of p\nErrorbar = 1$\sigma$')
         plt.savefig(saveRoute)
         
     def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray):
@@ -207,15 +208,17 @@ class squareForest(forestFire):
         
         if (self.saveHistoricalPropagation):
             
-            print('Generating and saving animation, wait a sec...')
+            print('Starting simulation, wait a sec...')
             # Simulate fire
             _ = self.propagateFire(self.burningThreshold)
-            teselado.squareAnimationPlot(fileName, self.historicalFirePropagation, interval)
+
+            print('Simulation has finished. Initializing animation...')
+            teselado.squareAnimationPlot(fileName,
+                                         self.historicalFirePropagation,
+                                         interval)
             print('Done.')
         else:
             print('Historical data not found.')
-        
-        return
     
     def plot(self, fileName):
         return
@@ -234,20 +237,26 @@ class heaxgonalForest(forestFire):
                  topography:np.ndarray = zeroArray,
                  saveHistoricalPropagation:bool = False):
         
-        neighboursBoolTensor = np.ones((6,*initialForest.shape), dtype=bool)
-        neighbours = [(-1,0),(1,0),(0,1),(0,-1),(1,1),(-1,-1)]
+        rows,columns = initialForest.shape
+        neighboursBoolTensor = hexagonalNeighboursBooleanTensor(columns,rows)
+        neighbours = [(0,1),(0,-1),(-1,0),(1,0),(-1,1),(-1,1),(-1,-1),(-1,-1)]
         super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
     
     def animate(self, fileName, interval=100):
-        teselado.hexagonalAnimationPlot(filename=fileName,
-                                        historical= self.historicalFirePropagation,
-                                        interval=interval,
-                                        size=self.forestSize)
-        return
-    
-    def plot(self, fileName):
-        return
-    
+        if (self.saveHistoricalPropagation):
+            
+            print('Starting simulation, wait a sec...')
+            # Simulate fire
+            _ = self.propagateFire(self.burningThreshold)
+            
+            print('Simulation has finished. Initializing animation...')
+            teselado.hexagonalAnimationPlot(filename=fileName,
+                                            historical= self.historicalFirePropagation,
+                                            interval=interval,
+                                            size=self.forestSize)
+            print('Done.')
+        else:
+            print('Historical data not found.')
     
 #=============================================================================================================================================
 class triangularForest(forestFire):
@@ -257,14 +266,11 @@ class triangularForest(forestFire):
     """
     def __init__(self, burningThreshold:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray):
         rows,columns = initialForest.shape
-        neighboursBoolTensor = hexagonalNeighboursBooleanTensor(columns,rows)
-        neighbours = [(-1,0),(1,0),(0,1),(0,-1)]
-        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography)
+        neighboursBoolTensor = triangularNeighboursBooleanTensor(columns,rows)
+        neighbours = [(1,0),(0,-1),(1,0),(-1,0)]
+        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
     
     def animate(self, fileName, interval=100):
-        return
-    
-    def plot(self, fileName):
         return
 
 #=======================================================================================
@@ -285,19 +291,31 @@ def hexagonalNeighboursBooleanTensor(columns,rows):
     This function compute the boolean neighbours tensor for an hexagonal forest
     of size (y,x)
     """
+    booleanTensor = np.ones((8,rows,columns), dtype=bool)
+
+    evenColumns = np.zeros((rows,columns), dtype=bool)
+    evenColumns[:, ::2] = True
+
+    oddColumns = np.zeros((rows,columns), dtype=bool)
+    oddColumns[:, 1::2] = True
+
+    booleanTensor[4] = booleanTensor[5] = evenColumns
+    booleanTensor[6] = booleanTensor[7] = oddColumns
+    return booleanTensor
+
+def triangularNeighboursBooleanTensor(columns,rows):
+    """
+    This function compute the boolean neighbours tensor for an hexagonal forest
+    of size (y,x)
+    """
     booleanTensor = np.ones((4,rows,columns), dtype=bool)
 
-    roll_0 = np.zeros(columns, dtype=bool)
-    roll_1 = np.zeros(columns, dtype=bool)
-    rightNeighbours = np.zeros((rows,columns), dtype=bool)
+    evenColumns = np.zeros((rows,columns), dtype=bool)
+    evenColumns[:, ::2] = True
 
-    for i in range(1,columns,2):
-        roll_1[i] = True
-        roll_0[i-1] = True
+    oddColumns = np.zeros((rows,columns), dtype=bool)
+    oddColumns[:, 1::2] = True
 
-    for j in range(rows):
-        rightNeighbours[j] = roll_0 if j%2 == 0 else roll_1
-
-    booleanTensor[0] = ~rightNeighbours
-    booleanTensor[1] = rightNeighbours
+    booleanTensor[2] = evenColumns
+    booleanTensor[3] = oddColumns
     return booleanTensor
