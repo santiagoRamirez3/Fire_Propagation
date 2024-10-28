@@ -10,6 +10,7 @@ def menu():
     1   Run squared Fire and generate gif
     2   Calculate propagation time graph as a function of p
     3   Determine the percolation threshold P_c
+    4   Find the critical exponent
     
     '''
     

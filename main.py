@@ -23,12 +23,24 @@ if __name__ == '__main__':
         forest.propagationTime(saveRoute,n,m, matrix)
             
     elif usrChoice == 3:
-        n = 15    # Amount of values to consider for p
-        m = 10      # Amount of trials per p        
+        n = 35    # Amount of values to consider for p
+        m = 5      # Amount of trials per p        
         saveRoute = './graphs/percolationThreshold.png'
         
         forest = simulation.squareForest(burningThreshold=0.55, initialForest=matrix)
-        forest.percolationThreshold(saveRoute,n,m,matrix)
+        p_c = forest.percolationThreshold(saveRoute,n,m,matrix,True)
+        
+    elif usrChoice == 4:
+        n = 20    # Amount of values to consider for p in the range (0,1)to fin p_c
+        m1 = 5      # Amount of trials per p        
+        m2 = 10     # Amount of trials per p to find M
+        saveRoute = './graphs/percolationThreshold.png'
+        epsilon = 0.1
+        delta = 0.001
+        
+        forest = simulation.squareForest(burningThreshold=0.55, initialForest=matrix)
+        criticalExponent = forest.criticalExponent(saveRoute,epsilon,delta,n,m1,m2,matrix)
+        print(criticalExponent)
             
         
     

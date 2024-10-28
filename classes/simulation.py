@@ -2,6 +2,7 @@ import numpy as np
 from classes import teselado
 import matplotlib.pyplot as plt
 from scipy.ndimage import label
+from scipy.stats import linregress
 
 
 # ===============================================================
@@ -158,7 +159,7 @@ class forestFire():
         plt.title('Burning time as a function of p\nErrorbar = 1$\sigma$')
         plt.savefig(saveRoute)
         
-    def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray):
+    def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray, plot:bool=False):
         '''
          args: 
          - n: amount of values for p to consider in the interval 0 to 1
@@ -174,17 +175,89 @@ class forestFire():
                 _ = self.propagateFire(p)
                 percolationResults[i,j] = percolation_check(self.forest)
                 
+        # Delta of p
+        delta = np.round(1/n,2)
         
         # Calculate the frequency of percolation for each p
         percolation_frequencies = percolationResults.mean(axis=1)
+        
+        # Get the percolation threshold
+        p_c = np.round(P[percolation_frequencies > 0.5][0],2)
 
-        # Plot
-        plt.plot(P, percolation_frequencies, marker='o')
-        plt.xlabel("$P$")
-        plt.ylabel("Percolation Frequency")
-        plt.title("Percolation Probability vs. p")
-        plt.grid()
-        plt.savefig(saveRoute)
+        if plot:
+            # Plot
+            plt.plot(P, percolation_frequencies, marker='o')
+            plt.xlabel("$P$")
+            plt.ylabel("Percolation Frequency")
+            plt.title("Percolation Probability vs. p")
+            plt.grid()
+            plt.text(0.63, 1.15, f'Percolation threshold: {p_c} +- {delta}', fontsize=10, color="blue")
+            plt.savefig(saveRoute)
+        
+        return p_c
+    
+    def criticalExponent(self, saveRoute:str,epsilon:float,delta:float, n:int, m1:int,m2:int, initial:np.ndarray):
+        self.forest = np.copy(initial)
+        #p_c = self.percolationThreshold(saveRoute, n,m1,self.forest)
+        p_c=0.50
+        
+        # POssible p values to consider around p_c
+        P = np.arange( p_c, p_c + epsilon, delta)
+        #P = np.arange(p_c - epsilon, p_c, delta)
+        t = np.abs(P-p_c)
+        print(t)
+        print(np.log(t))
+        #print(t)
+        
+        # Registered Percolating cluster size
+        meanM = np.zeros(len(t))
+        
+        # Simulate and calculate the mean percolation cluster size
+        for i,p in enumerate(P):
+            
+            M = np.zeros(m2)
+            for j in range(m2):
+                self.forest = np.copy(initial)
+                self.propagateFire(p)
+
+                # Given the finished board, calculate the size of percolating cluster
+
+                # Check if it percolated
+                if percolation_check(self.forest):
+
+                    # Calculate the size of the cluster (cells with zeros)
+                    M[j] = np.sum(self.forest == 3)
+                    
+            # Take the mean
+            if np.sum(M) == 0: meanM[i] = 0
+            else: meanM[i] = np.mean(M[ M>0 ] )
+        
+        # Now we can find the critical exponent
+        
+        # Convert to logarithm scale
+        mask = (meanM != 0) & (t != 0)
+        log_t = np.log(t[mask])
+        log_meanM = np.log(meanM[mask])
+        
+        # Make the linear regression
+        slope, intercept, r_value, p_value, std_err = linregress(log_t, log_meanM)
+        
+        # Get the critical exponent B
+        B = -slope
+        #
+        #x = np.arange(0,1,0.01)
+        plt.plot(log_t,log_meanM)
+        #plt.ylim(0,20)
+        plt.savefig('./prueba')
+        #print(log_t)
+        
+        #print(meanM)
+
+        #print(p_c)
+
+        print(log_meanM)
+        return B
+        
     
 #=============================================================================================================================================
 class squareForest(forestFire):
