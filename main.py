@@ -11,7 +11,7 @@ if __name__ == '__main__':
     matrix[50,50] = 2
     
     if usrChoice ==1:
-        forest = simulation.heaxgonalForest(burningThreshold=0.5, initialForest=matrix, saveHistoricalPropagation=True)
+        forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
         forest.animate('intento_1')
     
     elif usrChoice == 2:
@@ -19,7 +19,7 @@ if __name__ == '__main__':
         m = 15      # Amount of trials per p 
         saveRoute = './graphs/finalTimes.png'
         
-        forest = simulation.squareForest(burningThreshold=0.55, initialForest=matrix)
+        forest = simulation.squareForest(burningThreshold=0.55, occuProba=0.95 ,initialForest=matrix)
         forest.propagationTime(saveRoute,n,m, matrix)
             
     elif usrChoice == 3:
@@ -27,7 +27,7 @@ if __name__ == '__main__':
         m = 5      # Amount of trials per p        
         saveRoute = './graphs/percolationThreshold.png'
         
-        forest = simulation.squareForest(burningThreshold=0.55, initialForest=matrix)
+        forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.95 , initialForest=matrix)
         p_c = forest.percolationThreshold(saveRoute,n,m,matrix,True)
         
     elif usrChoice == 4:
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         epsilon = 0.1
         delta = 0.001
         
-        forest = simulation.squareForest(burningThreshold=0.55, initialForest=matrix)
+        forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.95 , initialForest=matrix)
         criticalExponent = forest.criticalExponent(saveRoute,epsilon,delta,n,m1,m2,matrix)
         print(criticalExponent)
             

@@ -29,13 +29,24 @@ def percolation_check(array):
 
 # ===============================================================
 
+def Apply_occupation_proba(array:np.ndarray, occuProba:float):
+    
+    shape = array.shape
+    modified_array = np.copy(array)
+    occupationMask = (np.random.rand(*shape) > occuProba)
+    modified_array[occupationMask] = 0
+    print(modified_array[45:55,45:55])
+
+    return modified_array
+# ===============================================================
+
 
 zeroArray = np.zeros(1)
 
 class forestFire():
     
     def __init__(self, 
-                 burningThreshold:float, initialForest:np.ndarray,
+                 burningThreshold:float, occuProba,initialForest:np.ndarray,
                  neighbours:list,
                  neighboursBoolTensor: np.ndarray,
                  wind:np.ndarray = zeroArray,
@@ -45,6 +56,7 @@ class forestFire():
         
         
         self.burningThreshold = burningThreshold
+        self.occuProba = occuProba
         self.forest = np.copy(initialForest)
         self.neighbours = neighbours
         self.neighboursBoolTensor = neighboursBoolTensor
@@ -57,6 +69,9 @@ class forestFire():
         
     
     def propagateFire(self,p:float):
+        # Apply ocuppation probability
+        self.forest = Apply_occupation_proba(self.forest,self.occuProba)
+        
         if np.sum(self.forest == 2) == 0:
             print('The forest does not have burning trees')
         else:
@@ -160,7 +175,7 @@ class forestFire():
         plt.title(r'Burning time as a function of p\nErrorbar = 1$\sigma$')
         plt.savefig(saveRoute)
         
-    def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray, plot:bool=False):
+    def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray,occuProba:float, plot:bool=False):
         '''
          args: 
          - n: amount of values for p to consider in the interval 0 to 1
@@ -197,10 +212,10 @@ class forestFire():
         
         return p_c
     
-    def criticalExponent(self, saveRoute:str,epsilon:float,delta:float, n:int, m1:int,m2:int, initial:np.ndarray):
+    def criticalExponent(self, saveRoute:str,epsilon:float,delta:float, n:int, m1:int,m2:int, initial:np.ndarray, occuproba:float):
         self.forest = np.copy(initial)
-        #p_c = self.percolationThreshold(saveRoute, n,m1,self.forest)
-        p_c=0.50
+        p_c = self.percolationThreshold(saveRoute, n,m1,self.forest)
+        #p_c=0.50
         
         # POssible p values to consider around p_c
         P = np.arange( p_c, p_c + epsilon, delta)
@@ -268,6 +283,7 @@ class squareForest(forestFire):
     """
     def __init__(self,
                  burningThreshold:float,
+                 occuProba:float,
                  initialForest:np.ndarray,
                  wind:np.ndarray = zeroArray,
                  topography:np.ndarray = zeroArray,
@@ -275,7 +291,7 @@ class squareForest(forestFire):
         
         neighboursBoolTensor = np.ones((4,*initialForest.shape), dtype=bool)
         neighbours = [(-1,0),(1,0),(0,1),(0,-1)]
-        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
+        super().__init__(burningThreshold, occuProba, initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
     
     def animate(self, fileName, interval=100):
         
@@ -305,15 +321,17 @@ class heaxgonalForest(forestFire):
     """
     def __init__(self,
                  burningThreshold:float,
+                 occuProba:float,
                  initialForest:np.ndarray,
                  wind:np.ndarray = zeroArray,
                  topography:np.ndarray = zeroArray,
                  saveHistoricalPropagation:bool = False):
         
+        
         rows,columns = initialForest.shape
         neighboursBoolTensor = hexagonalNeighboursBooleanTensor(columns,rows)
         neighbours = [(0,1),(0,-1),(-1,0),(1,0),(-1,1),(-1,1),(-1,-1),(-1,-1)]
-        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
+        super().__init__(burningThreshold, occuProba,initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
     
     def animate(self, fileName, interval=100):
         if (self.saveHistoricalPropagation):
@@ -337,11 +355,11 @@ class triangularForest(forestFire):
     This is a subclass of the general class forestFire, but specifily designed for simulate
     the propagation in a central triangular distribution of trees
     """
-    def __init__(self, burningThreshold:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray):
+    def __init__(self, burningThreshold:float,occuProba:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray, saveHistoricalPropagation:bool = False):
         rows,columns = initialForest.shape
         neighboursBoolTensor = triangularNeighboursBooleanTensor(columns,rows)
         neighbours = [(1,0),(0,-1),(1,0),(-1,0)]
-        super().__init__(burningThreshold, initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
+        super().__init__(burningThreshold, occuProba,initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
     
     def animate(self, fileName, interval=100):
         return
