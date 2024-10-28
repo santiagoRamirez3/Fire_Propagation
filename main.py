@@ -11,7 +11,7 @@ if __name__ == '__main__':
     matrix[50,50] = 2
     
     if usrChoice ==1:
-        forest = simulation.squareForest(burningThreshold=0.55, initialForest=matrix, saveHistoricalPropagation=True)
+        forest = simulation.heaxgonalForest(burningThreshold=0.5, initialForest=matrix, saveHistoricalPropagation=True)
         forest.animate('intento_1')
     
     elif usrChoice == 2:
