@@ -1,52 +1,16 @@
 import numpy as np
 from classes import teselado
 import matplotlib.pyplot as plt
-from scipy.ndimage import label
 from scipy.stats import linregress
 
-
-# ===============================================================
-def percolation_check(array):
-    # Identificar regiones conectadas de árboles quemados, representados por el número 3
-    labeled_array, num_features = label(array == 3)
-    
-    # Obtener las etiquetas presentes en los bordes superior e inferior (percolación vertical)
-    first_row_labels = set(labeled_array[0, :])
-    last_row_labels = set(labeled_array[-1, :])
-    
-    # Verificar si alguna etiqueta de la primera fila está en la última fila (percolación vertical)
-    vertical_common_labels = first_row_labels.intersection(last_row_labels)
-    
-    # Obtener las etiquetas presentes en los bordes izquierdo y derecho (percolación horizontal)
-    first_col_labels = set(labeled_array[:, 0])
-    last_col_labels = set(labeled_array[:, -1])
-    
-    # Verificar si alguna etiqueta de la primera columna está en la última columna (percolación horizontal)
-    horizontal_common_labels = first_col_labels.intersection(last_col_labels)
-    
-    # Si hay etiquetas en común en cualquiera de las direcciones, hay percolación
-    return bool(vertical_common_labels - {0}) or bool(horizontal_common_labels - {0})  # Excluir 0 porque no es una región etiquetada
-
-# ===============================================================
-
-def Apply_occupation_proba(array:np.ndarray, occuProba:float):
-    
-    shape = array.shape
-    modified_array = np.copy(array)
-    occupationMask = (np.random.rand(*shape) > occuProba)
-    modified_array[occupationMask] = 0
-    print(modified_array[45:55,45:55])
-
-    return modified_array
-# ===============================================================
-
+from classes.auxiliarfunc import percolation_check, Apply_occupation_proba
 
 zeroArray = np.zeros(1)
 
 class forestFire():
     
     def __init__(self, 
-                 burningThreshold:float, occuProba,initialForest:np.ndarray,
+                 burningThreshold:float, occuProba:float,initialForest:np.ndarray,
                  neighbours:list,
                  neighboursBoolTensor: np.ndarray,
                  wind:np.ndarray = zeroArray,
@@ -175,7 +139,7 @@ class forestFire():
         plt.title(r'Burning time as a function of p\nErrorbar = 1$\sigma$')
         plt.savefig(saveRoute)
         
-    def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray,occuProba:float, plot:bool=False):
+    def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray, plot:bool=False):
         '''
          args: 
          - n: amount of values for p to consider in the interval 0 to 1
@@ -212,17 +176,17 @@ class forestFire():
         
         return p_c
     
-    def criticalExponent(self, saveRoute:str,epsilon:float,delta:float, n:int, m1:int,m2:int, initial:np.ndarray, occuproba:float):
+    def criticalExponent(self, saveRoute:str,epsilon:float,delta:float, n:int, m1:int,m2:int, initial:np.ndarray):
         self.forest = np.copy(initial)
         p_c = self.percolationThreshold(saveRoute, n,m1,self.forest)
         #p_c=0.50
         
-        # POssible p values to consider around p_c
+        # Possible p values to consider around p_c
         P = np.arange( p_c, p_c + epsilon, delta)
         #P = np.arange(p_c - epsilon, p_c, delta)
         t = np.abs(P-p_c)
-        print(t)
-        print(np.log(t))
+        #print(t)
+        #print(np.log(t))
         #print(t)
         
         # Registered Percolating cluster size
@@ -232,9 +196,10 @@ class forestFire():
         for i,p in enumerate(P):
             
             M = np.zeros(m2)
+            #self.occuProba = p
             for j in range(m2):
                 self.forest = np.copy(initial)
-                self.propagateFire(p)
+                self.propagateFire(self.burningThreshold)
 
                 # Given the finished board, calculate the size of percolating cluster
 
@@ -271,7 +236,7 @@ class forestFire():
 
         #print(p_c)
 
-        print(log_meanM)
+        #print(log_meanM)
         return B
         
     
