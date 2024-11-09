@@ -7,19 +7,19 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     usrChoice = menu()
-    matrix = np.ones((100,100))
-    matrix[50,50] = 2
+    matrix = np.ones((500,500))
+    matrix[250,250] = 2
     
     if usrChoice ==1:
-        forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.93 ,initialForest=matrix, saveHistoricalPropagation=True)
-        forest.animate('intento_1')
+        forest = simulation.triangularForest(burningThreshold=0.9,occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
+        forest.animate('intento_3')
     
     elif usrChoice == 2:
-        n = 50    # Amount of values to consider for p
-        m = 15      # Amount of trials per p 
+        n = 150    # Amount of values to consider for p
+        m = 150      # Amount of trials per p 
         saveRoute = './graphs/finalTimes.png'
         
-        forest = simulation.squareForest(burningThreshold=0.55, occuProba=0.95 ,initialForest=matrix)
+        forest = simulation.triangularForest(burningThreshold=0.55, occuProba=1 ,initialForest=matrix)
         forest.propagationTime(saveRoute,n,m, matrix)
             
     elif usrChoice == 3:
@@ -27,17 +27,17 @@ if __name__ == '__main__':
         m = 5      # Amount of trials per p        
         saveRoute = './graphs/percolationThreshold.png'
         
-        forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.92 , initialForest=matrix)
+        forest = simulation.triangularForest(burningThreshold=0.55,occuProba=0.92 , initialForest=matrix)
         p_c = forest.percolationThreshold(saveRoute,n,m,matrix,True)
         print("The percolation threshold is: ",p_c)
         
     elif usrChoice == 4:
-        n = 20    # Amount of values to consider for p in the range (0,1)to fin p_c
+        n = 20      # Amount of values to consider for p in the range (0,1)to fin p_c
         m1 = 5      # Amount of trials per p        
-        m2 = 10     # Amount of trials per p to find M
+        m2 = 30     # Amount of trials per p to find M
         saveRoute = './graphs/percolationThreshold.png'
-        epsilon = 0.1
-        delta = 0.001
+        epsilon = 0.002*6
+        delta = 0.002
         
         forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.92 , initialForest=matrix)
         criticalExponent = forest.criticalExponent(saveRoute,epsilon,delta,n,m1,m2,matrix)

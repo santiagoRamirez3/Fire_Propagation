@@ -47,12 +47,12 @@ class forestFire():
                 propagationTime += 1
                 
                 neighboursTensor = self.createNeighbourTensor()
-                couldPropagate = np.sum(neighboursTensor == 2, axis=0)
-
+                couldPropagate = neighboursTensor == 2
+                incresProbability = np.sum(couldPropagate, axis=0)
                 burningTrees = (self.forest == 2)
 
                 probabilityMatrixForest = np.random.rand(*self.forestSize)
-                probabilityMatrixForest = probabilityMatrixForest ** couldPropagate
+                probabilityMatrixForest = probabilityMatrixForest ** incresProbability
 
                 #-----------------------------------------------------------------------------------------------------
                 # Here could appear a function to modificate probabilityMatrixForest depending of wind and topography
@@ -60,7 +60,7 @@ class forestFire():
 
                 couldBurn = (probabilityMatrixForest <= p)
 
-                newBurningTrees = (self.forest == 1) & couldBurn #& couldPropagate
+                newBurningTrees = (self.forest == 1) & couldBurn & np.logical_or.reduce(couldPropagate,axis=0)
 
                 # Update forest matrix for the next step
                 self.forest[burningTrees] = 3
@@ -175,14 +175,14 @@ class forestFire():
             plt.savefig(saveRoute)
         
         return p_c
-    
+    #-------------------------------------------------------------------------------------------------
     def criticalExponent(self, saveRoute:str,epsilon:float,delta:float, n:int, m1:int,m2:int, initial:np.ndarray):
         self.forest = np.copy(initial)
-        p_c = self.percolationThreshold(saveRoute, n,m1,self.forest)
-        #p_c=0.50
+        #p_c = self.percolationThreshold(saveRoute, n,m1,self.forest)
+        p_c=0.9
         
         # Possible p values to consider around p_c
-        P = np.arange( p_c, p_c + epsilon, delta)
+        P = np.arange( p_c - epsilon, p_c, delta)
         #P = np.arange(p_c - epsilon, p_c, delta)
         t = np.abs(P-p_c)
         #print(t)
@@ -323,11 +323,24 @@ class triangularForest(forestFire):
     def __init__(self, burningThreshold:float,occuProba:float, initialForest:np.ndarray, wind:np.ndarray = zeroArray, topography:np.ndarray = zeroArray, saveHistoricalPropagation:bool = False):
         rows,columns = initialForest.shape
         neighboursBoolTensor = triangularNeighboursBooleanTensor(columns,rows)
-        neighbours = [(1,0),(0,-1),(1,0),(-1,0)]
+        neighbours = [(0,1),(0,-1),(1,0),(-1,0)]
         super().__init__(burningThreshold, occuProba,initialForest, neighbours, neighboursBoolTensor, wind, topography, saveHistoricalPropagation)
     
     def animate(self, fileName, interval=100):
-        return
+        if (self.saveHistoricalPropagation):
+            
+            print('Starting simulation, wait a sec...')
+            # Simulate fire
+            _ = self.propagateFire(self.burningThreshold)
+            
+            print('Simulation has finished. Initializing animation...')
+            teselado.triangularAnimationPlot(filename=fileName,
+                                            historical= self.historicalFirePropagation,
+                                            interval=interval,
+                                            size=self.forestSize)
+            print('Done.')
+        else:
+            print('Historical data not found.')
 
 #=======================================================================================
 # Maybe more forest types, boronoy, etc
@@ -368,9 +381,10 @@ def triangularNeighboursBooleanTensor(columns,rows):
 
     evenColumns = np.zeros((rows,columns), dtype=bool)
     evenColumns[:, ::2] = True
+    for i in range(1, rows, 2):  # Fila impar, comenzando desde 1
+        evenColumns[i] = np.roll(evenColumns[i], shift=1)
 
-    oddColumns = np.zeros((rows,columns), dtype=bool)
-    oddColumns[:, 1::2] = True
+    oddColumns = ~evenColumns
 
     booleanTensor[2] = evenColumns
     booleanTensor[3] = oddColumns

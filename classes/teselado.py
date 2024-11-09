@@ -112,7 +112,39 @@ def generateHexagonalGrid(xmin, xmax, ymin, ymax, hex_size):
 
 #=============================================================================================================================================
 
-def triangularAnimationPlot(filename:str, historical:list, interval:int) -> None:
+def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tuple) -> None:
+    m,n = size
+    triangules = generateTriangularGrid(n,m)
+  
+    triangulesColors = colorAssigner(historical[0])
+    triangule_collection = PolyCollection(triangules, edgecolors='black', facecolors=triangulesColors,linewidth=0.1, cmap=customCmap)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.set_title('Triangular teselation simulation', size=20)
+    ax.add_collection(triangule_collection)
+    ax.set_xlim(0, m * np.sqrt(3))
+    ax.set_ylim(0, n - 1)
+    ax.set_aspect('equal')
+
+    # Normalizar los valores (0 a 3 para los colores)
+    norm = mcolors.BoundaryNorm(boundaries=[0,0.75,1.5,2.25,3], ncolors=len(colors))
+
+    # Agregar la barra de color
+    cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=customCmap), ax=ax)
+    cbar.set_label('Estado del árbol')  # Etiqueta para la barra de color
+    cbar.set_ticks(ticksLocation)  # Ubicación de los ticks
+    cbar.set_ticklabels(ticksLabels)  # Etiquetas de los ticks
+    #cbar = plt.colorbar(hex_collection, ticks=ticksLocation)
+    #cbar.set_ticklabels(ticksLabels)
+
+    def update_colors(frame):
+        triangulesColors = colorAssigner(historical[frame])
+        triangule_collection.set_facecolors(triangulesColors)
+        return [triangule_collection]
+
+    # Crear la animación
+    trianguleAni = animation.FuncAnimation(fig, update_colors, frames=len(historical), interval=interval, blit=False)
+    trianguleAni.save(filename + ".gif", writer="pillow")
     return
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -120,7 +152,7 @@ def XOR(A,B):
   return ( not(A) and B) or ( A and not(B))
 
 # Function to generate equilateral triangles for a tessellation
-def generateTriangularGrid(n,m, size):
+def generateTriangularGrid(n,m, size=2.0):
     """
     Generate a triangular grid covering the region (0, n) x (0, m)
     with equilateral triangles. 'size' is the side length of each triangle.
