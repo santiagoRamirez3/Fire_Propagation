@@ -48,11 +48,12 @@ class forestFire():
                 
                 neighboursTensor = self.createNeighbourTensor()
                 couldPropagate = neighboursTensor == 2
-                incresProbability = np.sum(couldPropagate, axis=0)
+                amoungOfBurningNeighbours = np.sum(couldPropagate, axis=0)
+                cellsToEvaluate = amoungOfBurningNeighbours > 0
                 burningTrees = (self.forest == 2)
 
                 probabilityMatrixForest = np.random.rand(*self.forestSize)
-                probabilityMatrixForest = probabilityMatrixForest ** incresProbability
+                probabilityMatrixForest[cellsToEvaluate] = 1. - (1. - probabilityMatrixForest[cellsToEvaluate]) ** (1/amoungOfBurningNeighbours[cellsToEvaluate])
 
                 #-----------------------------------------------------------------------------------------------------
                 # Here could appear a function to modificate probabilityMatrixForest depending of wind and topography

@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     usrChoice = menu()
-    matrix = np.ones((500,500))
-    matrix[250,250] = 2
+    matrix = np.ones((100,100))
+    matrix[50,50] = 2
     
     if usrChoice ==1:
-        forest = simulation.triangularForest(burningThreshold=0.9,occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
-        forest.animate('intento_3')
+        forest = simulation.triangularForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
+        forest.animate('intento_5')
     
     elif usrChoice == 2:
         n = 150    # Amount of values to consider for p

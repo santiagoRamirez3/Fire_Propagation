@@ -34,7 +34,7 @@ def squareAnimationPlot(filename:str, historical:list, interval:int) -> None:
 
     # Configuración de la animación
     squareAni = animation.FuncAnimation(
-        fig, update, frames=len(historical), interval=interval, blit=False
+        fig, update, frames=len(historical), interval=interval, blit=True
     )
     # Mostrar la animación
     squareAni.save(filename + ".gif", writer="pillow")
@@ -73,7 +73,7 @@ def hexagonalAnimationPlot(filename:str, historical:list, interval:int, size:tup
         return [hex_collection]
 
     # Crear la animación
-    hexagonalAni = animation.FuncAnimation(fig, update_colors, frames=len(historical), interval=interval, blit=False)
+    hexagonalAni = animation.FuncAnimation(fig, update_colors, frames=len(historical), interval=interval, blit=True)
     hexagonalAni.save(filename + ".gif", writer="pillow")
     return
 
@@ -119,7 +119,7 @@ def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tu
     triangulesColors = colorAssigner(historical[0])
     triangule_collection = PolyCollection(triangules, edgecolors='black', facecolors=triangulesColors,linewidth=0.1, cmap=customCmap)
 
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(10, 7))
     ax.set_title('Triangular teselation simulation', size=20)
     ax.add_collection(triangule_collection)
     ax.set_xlim(0, m * np.sqrt(3))
@@ -143,7 +143,7 @@ def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tu
         return [triangule_collection]
 
     # Crear la animación
-    trianguleAni = animation.FuncAnimation(fig, update_colors, frames=len(historical), interval=interval, blit=False)
+    trianguleAni = animation.FuncAnimation(fig, update_colors, frames=len(historical), interval=interval, blit=True)
     trianguleAni.save(filename + ".gif", writer="pillow")
     return
 
