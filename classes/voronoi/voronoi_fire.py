@@ -1,5 +1,6 @@
 from classes.voronoi.voronoi_teselation import generateAnimation
 import numpy as np
+from scipy.sparse import csr_matrix, dok_matrix
 
 
 class voronoiFire():
@@ -22,12 +23,17 @@ class voronoiFire():
         
     
         # Create the neighbours table
-        self.neighboursTable = np.zeros((self.numPoints,self.numPoints), dtype=np.int8)
-        print(self.neighboursTable.shape)
+        #self.neighboursTable = np.zeros((self.numPoints,self.numPoints), dtype=np.int8)
+        #print(self.neighboursTable.shape)
+        
+        self.neighboursTable = dok_matrix((self.numPoints,self.numPoints))
+        #dok = self.neighboursTable.todok()
         
         for i,j in self.neighbours:
             self.neighboursTable[i,j] = 1
             self.neighboursTable[j,i] = 1
+            
+        self.neighboursTable = self.neighboursTable.tocsr()
         
         # Space to save historical fire status
         self.historicalFirePropagation = [np.copy(self.status)]
@@ -47,7 +53,8 @@ class voronoiFire():
                 mask = (self.status == 2).astype(int)
                 
                 # Matrix that contains the amount of burning neighbours each tree has
-                N = np.dot(self.neighboursTable,mask)
+                #N = np.dot(self.neighboursTable,mask)
+                N = self.neighboursTable.dot(mask)
 
                 # Get the modified Threshold for each tree
                 newThreshold = 1-(1-self.T)**N
