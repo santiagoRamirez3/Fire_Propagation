@@ -1,9 +1,9 @@
 import numpy as np
-from classes import teselado
+from classes.regular import teselado
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 
-from classes.auxiliarfunc import percolation_check, Apply_occupation_proba
+from classes.regular.auxiliarfunc import percolation_check, Apply_occupation_proba
 
 zeroArray = np.zeros(1)
 

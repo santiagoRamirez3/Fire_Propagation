@@ -1,6 +1,9 @@
-from classes import simulation
+from classes.regular import simulation
+from classes.voronoi import voronoi_fire
+
 from menu import menu
 import numpy as np
+from scipy.spatial import Voronoi
 
 import matplotlib.pyplot as plt
 
@@ -43,5 +46,12 @@ if __name__ == '__main__':
         criticalExponent = forest.criticalExponent(saveRoute,epsilon,delta,n,m1,m2,matrix)
         print(criticalExponent)
             
+    elif usrChoice == 5:
+        # Create Voronoi diagram
+        points = np.random.rand(25000, 2)
+        vor = Voronoi(points)
         
+        voronoi = voronoi_fire.voronoiFire(0.7,0.5,vor,1,)
+        voronoi.propagateFire()
+
     
