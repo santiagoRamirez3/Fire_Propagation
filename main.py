@@ -48,12 +48,12 @@ if __name__ == '__main__':
             
     elif usrChoice == 5:
         # Create Voronoi diagram
-        nPoints = 10000
+        nPoints = 250000
         points = np.random.rand(nPoints, 2)
         vor = Voronoi(points)
         
         voronoi = voronoi_fire.voronoiFire(0.4,0.5,vor,1,)
-        voronoi.animate('primera_prueba_voronoi')
+        voronoi.animate('prueba_voronoi')
         #voronoi.propagateFire()
 
     

@@ -1,6 +1,7 @@
 from classes.voronoi.voronoi_teselation import generateAnimation
 import numpy as np
 from scipy.sparse import csr_matrix, dok_matrix
+from shapely.geometry import Polygon
 
 
 class voronoiFire():
@@ -19,12 +20,11 @@ class voronoiFire():
         
         # Set the initial fire status
         self.status = np.ones(self.numPoints)
+        self.createBorder()
         self.status[initialFire] = 2
         
     
         # Create the neighbours table
-        #self.neighboursTable = np.zeros((self.numPoints,self.numPoints), dtype=np.int8)
-        #print(self.neighboursTable.shape)
         
         self.neighboursTable = dok_matrix((self.numPoints,self.numPoints))
         #dok = self.neighboursTable.todok()
@@ -53,7 +53,7 @@ class voronoiFire():
                 mask = (self.status == 2).astype(int)
                 
                 # Matrix that contains the amount of burning neighbours each tree has
-                #N = np.dot(self.neighboursTable,mask)
+                
                 N = self.neighboursTable.dot(mask)
 
                 # Get the modified Threshold for each tree
@@ -64,7 +64,7 @@ class voronoiFire():
                 
                 # find which trees could burn
                 couldBurn = (probability < newThreshold)
-                #print(propagationTime, np.sum(self.status==2),np.sum(couldBurn), np.sum(N>0))
+
                 # Find those trees that will brun in the next step
                 newBurningTrees = (self.status == 1) & couldBurn & (N>0)
                 
@@ -93,3 +93,22 @@ class voronoiFire():
                           filename,
                           self.historicalFirePropagation,
                           interval)
+    
+    def createBorder(self):
+        max_length = 10./np.sqrt(self.numPoints)
+        for i in range(self.numPoints):
+            region_index = self.voronoi.point_region[i]  # Get index for the i point's region
+            region = self.voronoi.regions[region_index]  # Get region by index
+            
+            # if region is infinite, set status 0
+            if -1 in region:
+                self.status[i] = 0
+                continue
+            
+            # if region is finite, calculate length\perimeter
+            polygon = Polygon(self.voronoi.vertices[region])  # create region's polygon
+            perimeter = polygon.length  # perimeter of polygon
+            
+            # if perimeter is higher than max_length, asign status 0
+            if perimeter > max_length:
+                self.status[i] = 0
