@@ -1,3 +1,4 @@
+from classes.voronoi.voronoi_teselation import generateAnimation
 import numpy as np
 
 
@@ -13,19 +14,20 @@ class voronoiFire():
         
         # Extract useful information
         self.neighbours = voronoi.ridge_points
-        self.numPoints = self.neighbours.shape[0]
+        self.numPoints = self.voronoi.points.shape[0]
         
         # Set the initial fire status
-        self.status = np.zeros(self.numPoints)
+        self.status = np.ones(self.numPoints)
         self.status[initialFire] = 2
         
     
         # Create the neighbours table
-        self.neighboursTable = np.zeros((self.numPoints,self.numPoints), dtype=int)
+        self.neighboursTable = np.zeros((self.numPoints,self.numPoints), dtype=np.int8)
+        print(self.neighboursTable.shape)
         
         for i,j in self.neighbours:
             self.neighboursTable[i,j] = 1
-            self.neighboursTable[j,1] = 1
+            self.neighboursTable[j,i] = 1
         
         # Space to save historical fire status
         self.historicalFirePropagation = [np.copy(self.status)]
@@ -42,11 +44,10 @@ class voronoiFire():
             
             while thereIsFire:
                 propagationTime += 1
-                
                 mask = (self.status == 2).astype(int)
                 
                 # Matrix that contains the amount of burning neighbours each tree has
-                N = self.neighboursTable@mask
+                N = np.dot(self.neighboursTable,mask)
 
                 # Get the modified Threshold for each tree
                 newThreshold = 1-(1-self.T)**N
@@ -55,10 +56,10 @@ class voronoiFire():
                 probability = np.random.rand(self.numPoints)
                 
                 # find which trees could burn
-                couldBurn = (probability <= newThreshold)
-                
+                couldBurn = (probability < newThreshold)
+                #print(propagationTime, np.sum(self.status==2),np.sum(couldBurn), np.sum(N>0))
                 # Find those trees that will brun in the next step
-                newBurningTrees = (self.status == 1) & couldBurn
+                newBurningTrees = (self.status == 1) & couldBurn & (N>0)
                 
                 # State burned trees
                 self.status[self.status == 2] = 3
@@ -73,6 +74,15 @@ class voronoiFire():
                 thereIsFire = False if np.sum(newBurningTrees) == 0 else True
             
             return propagationTime
-    
-    
-    
+        
+    def animate(self,filename, interval = 100):
+        self.saveHistoricalPropagation = True
+        print('Starting simulation, wait a sec...')
+        # Simulate fire
+        _ = self.propagateFire()
+
+        print('Simulation has finished. Initializing animation...')
+        generateAnimation(self.voronoi,
+                          filename,
+                          self.historicalFirePropagation,
+                          interval)
