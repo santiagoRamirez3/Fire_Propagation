@@ -90,10 +90,10 @@ def generateAnimation(vor,filename:str, historical:list, interval:int):
     polygons = [vertices[region] for region in regions]
 
     vorColors = colorAssigner(historical[0])
-    collection = PolyCollection(polygons, facecolors=vorColors, linewidths=0.4, edgecolor='black', cmap=customCmap)
+    collection = PolyCollection(polygons, facecolors=vorColors, linewidths=0.1, edgecolor='black', cmap=customCmap)
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.set_title('Hexagonal teselation simulation', size=20)
+    ax.set_title("Voronoi's teselation simulation", size=20)
     ax.add_collection(collection)
     ax.set_xlim(0,1)
     ax.set_ylim(0,1)
@@ -107,13 +107,11 @@ def generateAnimation(vor,filename:str, historical:list, interval:int):
     cbar.set_label('Estado del árbol')  # Etiqueta para la barra de color
     cbar.set_ticks(ticksLocation)  # Ubicación de los ticks
     cbar.set_ticklabels(ticksLabels)  # Etiquetas de los ticks
-    #cbar = plt.colorbar(hex_collection, ticks=ticksLocation)
-    #cbar.set_ticklabels(ticksLabels)
 
     def update_colors(frame):
         # Generar colores aleatorios para cada fotograma
-        hexagonsColors = colorAssigner(historical[frame])
-        collection.set_facecolors(hexagonsColors)
+        voronoiColors = colorAssigner(historical[frame])
+        collection.set_facecolors(voronoiColors)
         return [collection]
 
     # Crear la animación
