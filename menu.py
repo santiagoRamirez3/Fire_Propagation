@@ -7,12 +7,10 @@ def menu():
                             MENU: CHOOSE ONE OF THE FOLLOWING OPTIONS
     ----------------------------------------------------------------------------------------
     
-    1   Run squared Fire and generate gif
+    1   Run fire on chosen tessellation and generate gif
     2   Calculate propagation time graph as a function of p
     3   Determine the percolation threshold P_c
-    4   Find the critical exponent
-    5   Voronoi
-    
+    4   Find the critical exponent (Out of service)
     '''
     
     try:

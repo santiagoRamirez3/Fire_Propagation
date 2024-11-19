@@ -2,6 +2,7 @@ from classes.voronoi.voronoi_teselation import generateAnimation
 import numpy as np
 from scipy.sparse import csr_matrix, dok_matrix
 from shapely.geometry import Polygon
+import matplotlib.pyplot as plt
 
 
 class voronoiFire():
@@ -82,6 +83,51 @@ class voronoiFire():
             
             return propagationTime
         
+    
+    
+ #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++          
+    
+    def propagationtime(self,saveName:str,n:int, m:int):
+        """ 
+        Method to calculate and plot the propagation time as a funcion of the percolation threshold for voronoi tessellation
+        
+        args:
+            - saveName: str     name to save the plot
+            - n: int    How     many different percolationo threshold are to be considered
+            - m: int    How     many simulations for each fixed percolation threshold 
+            
+        returns:
+            None        saves the figure on the route graphs/voronoi/saveName
+        """
+        
+        finalTimes = np.zeros((n,m))
+        meanFinaltimes = np.zeros(n)
+        meanFinaltimesStd = np.zeros(n)
+        P = np.linspace(0,1,n)
+        
+        fixed_status = np.copy(self.status)
+        
+        for i,p in enumerate(P):
+            
+            self.T = p
+            for j in range(m):
+                self.status = np.copy(fixed_status)
+                finalTimes[i,j] = self.propagateFire()
+            
+            meanFinaltimes[i] = np.mean(finalTimes[i,:])
+            meanFinaltimesStd[i] = np.std(finalTimes[i,:])
+            
+        # Reduce negative error bars for physical meaning
+        Y_err_lower = np.minimum(meanFinaltimes,meanFinaltimesStd)
+            
+        plt.errorbar(P, meanFinaltimes, yerr=[Y_err_lower,meanFinaltimesStd], capsize=5, ecolor='red', marker='o', linestyle='None')
+        plt.xlabel('$P$')
+        plt.ylabel('$t(p)$')
+        plt.title(r'Burning time as a function of p\nErrorbar = 1$\sigma$')
+        plt.savefig(saveName + '.png')
+    
+    
+ #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++       
     def animate(self,filename, interval = 100):
         self.saveHistoricalPropagation = True
         print('Starting simulation, wait a sec...')

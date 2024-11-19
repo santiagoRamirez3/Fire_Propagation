@@ -107,7 +107,7 @@ class forestFire():
     #-------------------------------------------------------------------------------------------------
     # Methods to calculate statistic params of many simulations
     #-------------------------------------------------------------------------------------------------
-
+ 
     def propagationTime(self,saveRoute:str, n:int,m:int, matrix:np.ndarray):
         '''
          args: 
@@ -133,12 +133,14 @@ class forestFire():
             meanFinaltimes[i] = np.mean(finalTimes[i,:])
             meanFinaltimesStd[i] = np.std(finalTimes[i,:])
             
+        # Reduce negative error bars for physical meaning
+        Y_err_lower = np.minimum(meanFinaltimes,meanFinaltimesStd)
             
-        plt.errorbar(P, meanFinaltimes, yerr=meanFinaltimesStd, capsize=5, ecolor='red', marker='o', linestyle='None')
+        plt.errorbar(P, meanFinaltimes, yerr=[Y_err_lower,meanFinaltimesStd], capsize=5, ecolor='red', marker='o', linestyle='None')
         plt.xlabel('$P$')
         plt.ylabel('$t(p)$')
         plt.title(r'Burning time as a function of p\nErrorbar = 1$\sigma$')
-        plt.savefig(saveRoute)
+        plt.savefig(saveRoute + '.png')
         
     def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray, plot:bool=False):
         '''
@@ -173,7 +175,7 @@ class forestFire():
             plt.title("Percolation Probability vs. p")
             plt.grid()
             plt.text(0.63, 1.15, f'Percolation threshold: {p_c} +- {delta}', fontsize=10, color="blue")
-            plt.savefig(saveRoute)
+            plt.savefig(saveRoute + '.png')
         
         return p_c
     #-------------------------------------------------------------------------------------------------
