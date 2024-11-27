@@ -85,7 +85,7 @@ def voronoi_finite_polygons_2d(vor, radius=None):
 
 #======================================================================================
 
-def generateAnimation(vor,filename:str, historical:list, interval:int):
+def generateAnimation(vor,filename:str, historical:list, interval:int, p_bond, p_site):
     regions, vertices = voronoi_finite_polygons_2d(vor)
     polygons = [vertices[region] for region in regions]
 
@@ -93,7 +93,8 @@ def generateAnimation(vor,filename:str, historical:list, interval:int):
     collection = PolyCollection(polygons, facecolors=vorColors, linewidths=0.1, edgecolor='black', cmap=customCmap)
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.set_title("Voronoi's teselation simulation", size=20)
+    ax.set_title("Voronoi's tessellation simulation", size=20)
+    ax.set_xlabel(r'$P_{bond}=$' + str(round(p_bond,2)) + r'  $P_{site}=$' + str(round(p_site,2)), size=15)
     ax.add_collection(collection)
     ax.set_xlim(0,1)
     ax.set_ylim(0,1)

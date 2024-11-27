@@ -5,7 +5,7 @@ from menu import menu
 import numpy as np
 from scipy.spatial import Voronoi
 
-from routes import routes_dict
+from routes import routes_dict, data_route
 
 
 if __name__ == '__main__':
@@ -17,14 +17,14 @@ if __name__ == '__main__':
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  
     if usrChoice == 1:
         try:
-            tessellation = int(input("Choose one: \n1   Squared\n2  Triangular\n3   Hexagonal\n4    Voronoi\n"))
+            tessellation = int(input("Choose one: \n1   Squared\n2   Triangular\n3   Hexagonal\n4   Voronoi\n"))
         except:
             print('Not a valid option.')
             
             
         if tessellation == 1:
             
-            name = 'squaredAnimation'
+            name = 'squaredAnimation_test'
             route = routes_dict['squared'] +  name
             forest = simulation.squareForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
             forest.animate(route)    
@@ -54,7 +54,7 @@ if __name__ == '__main__':
             name = 'voronoiAnimation'
             route = routes_dict['voronoi'] + name
 
-            voronoi = voronoi_fire.voronoiFire(0.4,0.5,vor,1,)
+            voronoi = voronoi_fire.voronoiFire(1.,0.5,vor,1,)
             voronoi.animate(route)
             
         else:
@@ -64,11 +64,11 @@ if __name__ == '__main__':
     
     elif usrChoice == 2:
         
-        n = 150    # Amount of values to consider for p
-        m = 150      # Amount of trials per p 
+        n = 100    # Amount of values to consider for p
+        m = 20      # Amount of trials per p 
         
         try:
-            tessellation = int(input("Choose one: \n1   Squared\n2  Triangular\n3    Hexagonal\n4   Voronoi\n"))
+            tessellation = int(input("Choose one: \n1   Squared\n2   Triangular\n3   Hexagonal\n4   Voronoi\n"))
         except:
             print('Not a valid option.')
             
@@ -160,10 +160,110 @@ if __name__ == '__main__':
         epsilon = 0.002*6
         delta = 0.002
         
-        forest = simulation.squareForest(burningThreshold=0.55,occuProba=0.92 , initialForest=matrix)
+        forest = simulation.squareForest(burningThreshold=0.55,occuProba=1. , initialForest=matrix)
         criticalExponent = forest.criticalExponent(saveRoute,epsilon,delta,n,m1,m2,matrix)
         print(criticalExponent)
 
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    elif usrChoice == 5:
+        n = 35    # Amount of values to consider for p
+        m = 5      # Amount of trials per p       
+        
+        try:
+            tessellation = int(input("Choose one: \n1   Squared\n2  Triangular\n3    Hexagonal\n4   Voronoi\n"))
+        except:
+            print('Not a valid option.')    
+        
+        if tessellation == 1:
+            
+            folder_path = data_route['squared']
+            file_name = "datos.csv"
+            name = 'squaredCompareProbabilities'
+            imagePath = routes_dict['squared'] + name
+            forest = simulation.squareForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix) 
+            
+            
+        elif tessellation == 2:
+            
+            folder_path = data_route['triangular']
+            file_name = "datos.csv"
+            name = 'triangularCompareProbabilities'
+            imagePath = routes_dict['triangular'] + name
+            forest = simulation.triangularForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix) 
+            
+        elif tessellation == 3:
+            
+            folder_path = data_route['hexagon']
+            file_name = "datos.csv"
+            name = 'hexagonalCompareProbabilities'
+            imagePath = routes_dict['hexagon'] + name
+            forest = simulation.heaxgonalForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix) 
+        
+        elif tessellation == 4:
+            nPoints = 10000
+            points = np.random.rand(nPoints, 2)
+            vor = Voronoi(points)
+            folder_path = data_route['voronoi']
+            file_name = "datos.csv"
+
+            name = 'voronoiCompareProbabilities'
+            imagePath = routes_dict['voronoi'] + name
+            forest = voronoi_fire.voronoiFire(burningThreshold=0.95, occuProba=0.95, voronoi=vor, initialFire=1)
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name) 
+        
+        else:
+            print('That is not an option, try again.')
+        
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    elif usrChoice == 6:
+        for tessellation in range(1,5):
+            for i,probability in enumerate(np.arange(0.1,1.1,0.1)):
+                print(f'Tessellation: {tessellation}, probability: {probability}')
+
+                if tessellation == 1:
+                    matrix = np.ones((100,100))
+                    matrix[50,50] = 2
+
+                    name = 'squaredAnimation' + '_' + str(i)
+                    route = routes_dict['squared'] +  name
+                    forest = simulation.squareForest(burningThreshold=probability, occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
+                    forest.animate(route)    
+
+
+                elif tessellation == 2:
+                    matrix = np.ones((100,100))
+                    matrix[50,50] = 2
+
+                    name = 'triangularAnimation' + '_' + str(i)
+                    route = routes_dict['triangular'] + name
+                    forest = simulation.triangularForest(burningThreshold=probability, occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
+                    forest.animate(route)
+
+
+                elif tessellation == 3:
+                    matrix = np.ones((100,100))
+                    matrix[50,50] = 2
+
+                    name = 'hexagonalAnimation' + '_' + str(i)
+                    route = routes_dict['hexagon'] + name    
+                    forest = simulation.heaxgonalForest(burningThreshold=probability, occuProba=0.95 ,initialForest=matrix, saveHistoricalPropagation=True)
+                    forest.animate(route)
+
+                elif tessellation == 4:
+                    # Create Voronoi diagram
+                    nPoints = 10000
+                    points = np.random.rand(nPoints, 2)
+                    vor = Voronoi(points)
+
+                    name = 'voronoiAnimation' + '_' + str(i)
+                    route = routes_dict['voronoi'] + name
+
+                    voronoi = voronoi_fire.voronoiFire(burningThreshold=probability, occuProba=0.95, voronoi=vor, initialFire=1)
+                    voronoi.animate(route)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     

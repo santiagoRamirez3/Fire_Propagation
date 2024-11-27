@@ -2,6 +2,9 @@ import numpy as np
 from classes.regular import teselado
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+import os
+import pandas as pd
+import seaborn as sns
 
 from classes.regular.auxiliarfunc import percolation_check, Apply_occupation_proba
 
@@ -32,9 +35,9 @@ class forestFire():
         self.saveHistoricalPropagation = saveHistoricalPropagation
         
     
-    def propagateFire(self,p:float):
+    def propagateFire(self,ps:float,pb:float):
         # Apply ocuppation probability
-        self.forest = Apply_occupation_proba(self.forest,self.occuProba)
+        self.forest = Apply_occupation_proba(self.forest,ps)
         
         if np.sum(self.forest == 2) == 0:
             print('The forest does not have burning trees')
@@ -59,7 +62,7 @@ class forestFire():
                 # Here could appear a function to modificate probabilityMatrixForest depending of wind and topography
                 #-----------------------------------------------------------------------------------------------------
 
-                couldBurn = (probabilityMatrixForest <= p)
+                couldBurn = (probabilityMatrixForest <= pb)
 
                 newBurningTrees = (self.forest == 1) & couldBurn & np.logical_or.reduce(couldPropagate,axis=0)
 
@@ -128,7 +131,7 @@ class forestFire():
             #self.burningThreshold = p
             for j in range(m):
                 self.forest = np.copy(matrix)
-                finalTimes[i,j] = self.propagateFire(p)
+                finalTimes[i,j] = self.propagateFire(1,p)
             
             meanFinaltimes[i] = np.mean(finalTimes[i,:])
             meanFinaltimesStd[i] = np.std(finalTimes[i,:])
@@ -140,7 +143,8 @@ class forestFire():
         plt.xlabel('$P$')
         plt.ylabel('$t(p)$')
         plt.title(r'Burning time as a function of p\nErrorbar = 1$\sigma$')
-        plt.savefig(saveRoute + '.png')
+        #plt.savefig(saveRoute + '.png')
+        plt.show()
         
     def percolationThreshold(self,saveRoute:str,n:int,m:int, matrix:np.ndarray, plot:bool=False):
         '''
@@ -202,7 +206,7 @@ class forestFire():
             #self.occuProba = p
             for j in range(m2):
                 self.forest = np.copy(initial)
-                self.propagateFire(self.burningThreshold)
+                self.propagateFire(self.occuProba,self.burningThreshold)
 
                 # Given the finished board, calculate the size of percolating cluster
 
@@ -242,7 +246,94 @@ class forestFire():
         #print(log_meanM)
         return B
         
-    
+    def compareBondSite(self,resolution:int,n_iter:int, imagePath, folder_path, file_name, matrix):
+        # Verificar si la carpeta existe, si no, crearla
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        file_path = os.path.join(folder_path, file_name)
+
+        # Verificar si el archivo .csv existe
+        if not os.path.isfile(file_path):
+            # Generar datos de ejemplo y guardarlos en un archivo .csv
+            print("Archivo no encontrado. Creando archivo .csv...")
+            p_site = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
+            p_bond = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
+            P_site, P_bond = np.meshgrid(p_site, p_bond)
+
+            time = np.zeros(len(p_site)*len(p_bond))  # Ejemplo de datos para z
+
+            count = 0
+            for ps in p_site:
+                for pb in p_bond:
+                    times_for_average = np.ones(n_iter, dtype=int)
+                    for i in range(n_iter):
+                        self.forest = np.copy(matrix)
+                        times_for_average[i] = self.propagateFire(ps,pb)
+                    time[count] = np.mean(times_for_average)
+                    count += 1
+                print(ps)
+
+            data = pd.DataFrame({
+                'P_site': P_site.flatten(),
+                'P_bond': P_bond.flatten(),
+                'time': time
+            })
+            data.to_csv(file_path, index=False)
+        else:
+            print("Archivo .csv encontrado.")
+
+        # Leer el archivo .csv
+        data = pd.read_csv(file_path)
+
+        # Crear un mapa de calor
+        print("Generando mapa de calor...")
+        heatmap_data = data.pivot_table(index='P_site', columns='P_bond', values='time')
+        plt.figure(figsize=(10, 8))
+        ax = sns.heatmap(heatmap_data, cmap='viridis', cbar_kws={'label': 'Valor de tiempo'})
+
+        # Configurar ticks manualmente
+        ticks = np.arange(0, 1.1, 0.1)  # De 0 a 1 en pasos de 0.1
+        ax.set_xticks(np.linspace(0, heatmap_data.shape[1] - 1, len(ticks)))  # Ticks ajustados al tamaño de la matriz
+        ax.set_yticks(np.linspace(0, heatmap_data.shape[0] - 1, len(ticks)))
+        ax.set_xticklabels([f"{tick:.1f}" for tick in ticks])
+        ax.set_yticklabels([f"{tick:.1f}" for tick in ticks])
+        ax.invert_yaxis()
+        ax.set_aspect(1)
+
+        plt.title("Mapa de calor de los datos (p_site, p_bond, time)")
+        plt.xlabel("p_site")
+        plt.ylabel("p_bond")
+        plt.savefig(imagePath+'.png', format='png')
+        #plt.show()
+
+        # Crear las mallas para las coordenadas X, Y, y los valores Z
+        X, Y = np.meshgrid(heatmap_data.columns.astype(float), heatmap_data.index.astype(float))
+        Z = heatmap_data.values
+
+        # Crear la figura y el gráfico 3D
+        fig2 = plt.figure(figsize=(12, 8))
+        ax2 = fig2.add_subplot(111, projection='3d')
+
+        # Crear el gráfico de superficie
+        surface = ax2.plot_surface(X, Y, Z, cmap='viridis', edgecolor='k')
+
+        # Añadir barra de color
+        cbar = fig2.colorbar(surface, ax=ax, shrink=0.5, aspect=10)
+        cbar.set_label('Valor de tiempo')
+
+        # Etiquetas y título
+        ax2.set_title("Gráfico 3D de los datos (P_site, P_bond, time)")
+        ax2.set_xlabel("P_bond")
+        ax2.set_ylabel("P_site")
+        ax2.set_zlabel("time")
+
+        # Rotar para una mejor vista inicial
+        ax2.view_init(elev=30, azim=-30)
+
+        # Guardar la imagen
+        plt.savefig(imagePath + '_3D' +'.png', format='png')
+        #plt.show()
 #=============================================================================================================================================
 class squareForest(forestFire):
     """
@@ -267,12 +358,14 @@ class squareForest(forestFire):
             
             print('Starting simulation, wait a sec...')
             # Simulate fire
-            _ = self.propagateFire(self.burningThreshold)
+            _ = self.propagateFire(self.occuProba,self.burningThreshold)
 
             print('Simulation has finished. Initializing animation...')
             teselado.squareAnimationPlot(fileName,
                                          self.historicalFirePropagation,
-                                         interval)
+                                         interval,
+                                         p_bond=self.burningThreshold,
+                                         p_site=self.occuProba)
             print('Done.')
         else:
             print('Historical data not found.')
@@ -306,13 +399,15 @@ class heaxgonalForest(forestFire):
             
             print('Starting simulation, wait a sec...')
             # Simulate fire
-            _ = self.propagateFire(self.burningThreshold)
+            _ = self.propagateFire(self.occuProba,self.burningThreshold)
             
             print('Simulation has finished. Initializing animation...')
             teselado.hexagonalAnimationPlot(filename=fileName,
                                             historical= self.historicalFirePropagation,
                                             interval=interval,
-                                            size=self.forestSize)
+                                            size=self.forestSize,
+                                            p_bond=self.burningThreshold,
+                                            p_site=self.occuProba)
             print('Done.')
         else:
             print('Historical data not found.')
@@ -334,13 +429,15 @@ class triangularForest(forestFire):
             
             print('Starting simulation, wait a sec...')
             # Simulate fire
-            _ = self.propagateFire(self.burningThreshold)
+            _ = self.propagateFire(self.occuProba,self.burningThreshold)
             
             print('Simulation has finished. Initializing animation...')
             teselado.triangularAnimationPlot(filename=fileName,
                                             historical= self.historicalFirePropagation,
                                             interval=interval,
-                                            size=self.forestSize)
+                                            size=self.forestSize,
+                                            p_bond=self.burningThreshold,
+                                            p_site=self.occuProba)
             print('Done.')
         else:
             print('Historical data not found.')
