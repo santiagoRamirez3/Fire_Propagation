@@ -20,12 +20,15 @@ def colorAssigner(matrix, colors=colors):
 
 #=============================================================================================================================================
 
-def squareAnimationPlot(filename:str, historical:list, interval:int) -> None:
+def squareAnimationPlot(filename:str, historical:list, interval:int, p_bond, p_site) -> None:
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10, 10))
     cax = ax.matshow(historical[0], cmap=customCmap, vmin=0, vmax=3)
+    ax.set_title('Square tessellation simulation', size=20)
+    ax.set_xlabel(r'$P_{bond}=$' + str(round(p_bond,2)) + r'  $P_{site}=$' + str(round(p_site,2)), size=15)
     cbar = plt.colorbar(cax, ticks=ticksLocation)
     cbar.set_ticklabels(ticksLabels)
+    cbar.set_label('Tree status')
 
     # Función de actualización de la animación
     def update(i):
@@ -41,7 +44,7 @@ def squareAnimationPlot(filename:str, historical:list, interval:int) -> None:
 
 #=============================================================================================================================================
 
-def hexagonalAnimationPlot(filename:str, historical:list, interval:int, size:tuple) -> None:
+def hexagonalAnimationPlot(filename:str, historical:list, interval:int, size:tuple, p_bond, p_site) -> None:
     m,n = size
     hexagons = generateHexagonalGrid(xmin=0, xmax=n, ymin=0, ymax=m, hex_size=2/3)
   
@@ -49,7 +52,8 @@ def hexagonalAnimationPlot(filename:str, historical:list, interval:int, size:tup
     hex_collection = PolyCollection(hexagons, edgecolors='black', facecolors=hexagonsColors,linewidth=0.1, cmap=customCmap)
 
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.set_title('Hexagonal teselation simulation', size=20)
+    ax.set_title('Hexagonal tessellation simulation', size=20)
+    ax.set_xlabel(r'$P_{bond}=$' + str(round(p_bond,2)) + r'  $P_{site}=$' + str(round(p_site,2)), size=15)
     ax.add_collection(hex_collection)
     ax.set_xlim(0, n-1)
     ax.set_ylim(1, m+(1/np.sqrt(3)))
@@ -60,7 +64,7 @@ def hexagonalAnimationPlot(filename:str, historical:list, interval:int, size:tup
 
     # Agregar la barra de color
     cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=customCmap), ax=ax)
-    cbar.set_label('Estado del árbol')  # Etiqueta para la barra de color
+    cbar.set_label('Tree status')  # Etiqueta para la barra de color
     cbar.set_ticks(ticksLocation)  # Ubicación de los ticks
     cbar.set_ticklabels(ticksLabels)  # Etiquetas de los ticks
     #cbar = plt.colorbar(hex_collection, ticks=ticksLocation)
@@ -112,7 +116,7 @@ def generateHexagonalGrid(xmin, xmax, ymin, ymax, hex_size):
 
 #=============================================================================================================================================
 
-def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tuple) -> None:
+def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tuple, p_bond, p_site) -> None:
     m,n = size
     triangules = generateTriangularGrid(n,m)
   
@@ -120,7 +124,8 @@ def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tu
     triangule_collection = PolyCollection(triangules, edgecolors='black', facecolors=triangulesColors,linewidth=0.1, cmap=customCmap)
 
     fig, ax = plt.subplots(figsize=(10, 7))
-    ax.set_title('Triangular teselation simulation', size=20)
+    ax.set_title('Triangular  tessellation simulation', size=20)
+    ax.set_xlabel(r'$P_{bond}=$' + str(round(p_bond,2)) + r'  $P_{site}=$' + str(round(p_site,2)), size=15)
     ax.add_collection(triangule_collection)
     ax.set_xlim(0, m * np.sqrt(3))
     ax.set_ylim(0, n - 1)
@@ -131,7 +136,7 @@ def triangularAnimationPlot(filename:str, historical:list, interval:int, size:tu
 
     # Agregar la barra de color
     cbar = plt.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=customCmap), ax=ax)
-    cbar.set_label('Estado del árbol')  # Etiqueta para la barra de color
+    cbar.set_label('Tree status')  # Etiqueta para la barra de color
     cbar.set_ticks(ticksLocation)  # Ubicación de los ticks
     cbar.set_ticklabels(ticksLabels)  # Etiquetas de los ticks
     #cbar = plt.colorbar(hex_collection, ticks=ticksLocation)

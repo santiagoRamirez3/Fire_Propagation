@@ -3,6 +3,10 @@ import numpy as np
 from scipy.sparse import csr_matrix, dok_matrix
 from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
+from classes.voronoi.auxiliarfunc import applyOcupation
+import pandas as pd
+import seaborn as sns
+import os
 
 
 class voronoiFire():
@@ -10,10 +14,10 @@ class voronoiFire():
                  burningThreshold:float, occuProba:float, voronoi:object, initialFire:int,saveHistoricalPropagation:bool = False) -> None:
         
         # Extract the object attributes fron the arguments
-        self.T = burningThreshold
+        self.burningThreshold = burningThreshold
         self.occuProba = occuProba
         self.voronoi = voronoi
-        self.initial = initialFire
+        self.initialFire = initialFire
         
         # Extract useful information
         self.neighbours = voronoi.ridge_points
@@ -22,7 +26,9 @@ class voronoiFire():
         # Set the initial fire status
         self.status = np.ones(self.numPoints)
         self.createBorder()
-        self.status[initialFire] = 2
+        self.initialConfiguration = np.copy(self.status)
+        #self.status = applyOcupation(self.status, self.occuProba)
+        
         
     
         # Create the neighbours table
@@ -40,8 +46,9 @@ class voronoiFire():
         self.historicalFirePropagation = [np.copy(self.status)]
         self.saveHistoricalPropagation = saveHistoricalPropagation
     
-    def propagateFire(self):
-        
+    def propagateFire(self, ps:float, pb:float):
+        self.status = applyOcupation(self.status,ps)
+        self.status[self.initialFire] = 2
         if np.sum(self.status == 2) == 0:
             print('The forest does not have burning trees')
             
@@ -58,7 +65,7 @@ class voronoiFire():
                 N = self.neighboursTable.dot(mask)
 
                 # Get the modified Threshold for each tree
-                newThreshold = 1-(1-self.T)**N
+                newThreshold = 1-(1-pb)**N
                 
                 # Generate aleatory number for each point
                 probability = np.random.rand(self.numPoints)
@@ -109,7 +116,7 @@ class voronoiFire():
         
         for i,p in enumerate(P):
             
-            self.T = p
+            self.burningThreshold = p
             for j in range(m):
                 self.status = np.copy(fixed_status)
                 finalTimes[i,j] = self.propagateFire()
@@ -138,7 +145,9 @@ class voronoiFire():
         generateAnimation(self.voronoi,
                           filename,
                           self.historicalFirePropagation,
-                          interval)
+                          interval,
+                          p_bond=self.burningThreshold,
+                          p_site=self.occuProba)
     
     def createBorder(self):
         max_length = 10./np.sqrt(self.numPoints)
@@ -158,3 +167,64 @@ class voronoiFire():
             # if perimeter is higher than max_length, asign status 0
             if perimeter > max_length:
                 self.status[i] = 0
+    
+    def compareBondSite(self,resolution:int,n_iter:int, imagePath, folder_path, file_name):
+        # Verificar si la carpeta existe, si no, crearla
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        file_path = os.path.join(folder_path, file_name)
+
+        # Verificar si el archivo .csv existe
+        if not os.path.isfile(file_path):
+            # Generar datos de ejemplo y guardarlos en un archivo .csv
+            print("Archivo no encontrado. Creando archivo .csv...")
+            p_site = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
+            p_bond = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
+            P_site, P_bond = np.meshgrid(p_site, p_bond)
+
+            time = np.zeros(len(p_site)*len(p_bond))  # Ejemplo de datos para z
+
+            count = 0
+            for ps in p_site:
+                print(ps)
+                for pb in p_bond:
+                    times_for_average = np.ones(n_iter, dtype=int)
+                    for i in range(n_iter):
+                        self.status = np.copy(self.initialConfiguration)
+                        times_for_average[i] = self.propagateFire(ps,pb)
+                    time[count] = np.mean(times_for_average)
+                    count += 1
+                print(ps)
+
+            data = pd.DataFrame({
+                'P_site': P_site.flatten(),
+                'P_bond': P_bond.flatten(),
+                'time': time
+            })
+            data.to_csv(file_path, index=False)
+        else:
+            print("Archivo .csv encontrado.")
+
+        # Leer el archivo .csv
+        data = pd.read_csv(file_path)
+
+        # Crear un mapa de calor
+        print("Generando mapa de calor...")
+        heatmap_data = data.pivot_table(index='P_site', columns='P_bond', values='time')
+        plt.figure(figsize=(10, 8))
+        ax = sns.heatmap(heatmap_data, cmap='viridis', cbar_kws={'label': 'Valor de tiempo'})
+
+        # Configurar ticks manualmente
+        ticks = np.arange(0, 1.1, 0.1)  # De 0 a 1 en pasos de 0.1
+        ax.set_xticks(np.linspace(0, heatmap_data.shape[1] - 1, len(ticks)))  # Ticks ajustados al tamaño de la matriz
+        ax.set_yticks(np.linspace(0, heatmap_data.shape[0] - 1, len(ticks)))
+        ax.set_xticklabels([f"{tick:.1f}" for tick in ticks])
+        ax.set_yticklabels([f"{tick:.1f}" for tick in ticks])
+        ax.invert_yaxis()
+        ax.set_aspect(1)
+
+        plt.title("Mapa de calor de los datos (p_site, p_bond, time)")
+        plt.xlabel("p_site")
+        plt.ylabel("p_bond")
+        plt.savefig(imagePath+'.png', format='png')

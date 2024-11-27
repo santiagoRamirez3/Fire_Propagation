@@ -4,3 +4,10 @@ routes_dict = {
     'triangular': './graphs/triangular/',
     'hexagon': './graphs/hexagonal/'
 }
+
+data_route = {
+    'voronoi': './data/voronoi/',
+    'squared': './data/squared/',
+    'triangular': './data/triangular/',
+    'hexagon': './data/hexagonal/'
+}

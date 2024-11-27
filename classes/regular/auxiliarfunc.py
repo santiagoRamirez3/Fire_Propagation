@@ -1,6 +1,11 @@
 import numpy as np
 from scipy.ndimage import label
 
+
+import matplotlib.pyplot as plt
+
+
+
 # ===============================================================
 def percolation_check(array):
     # Identificar regiones conectadas de árboles quemados, representados por el número 3
