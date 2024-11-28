@@ -7,6 +7,7 @@ import pandas as pd
 import seaborn as sns
 
 from classes.regular.auxiliarfunc import percolation_check, Apply_occupation_proba
+from classes.fit.fitting import expFit
 
 zeroArray = np.zeros(1)
 
@@ -246,7 +247,7 @@ class forestFire():
         #print(log_meanM)
         return B
         
-    def compareBondSite(self,resolution:int,n_iter:int, imagePath, folder_path, file_name, matrix):
+    def compareBondSite(self,resolution:int,n_iter:int, imagePath, folder_path, file_name, matrix,propTimeThreshold:int=120):
         # Verificar si la carpeta existe, si no, crearla
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -300,10 +301,20 @@ class forestFire():
         ax.set_yticklabels([f"{tick:.1f}" for tick in ticks])
         ax.invert_yaxis()
         ax.set_aspect(1)
+        
+        # Execute the fit
+        function,ps,pb,popt = expFit(data,propTimeThreshold)
+        # Plot results
+        x = np.linspace(0,1,100)
+        x_indices = x * (heatmap_data.shape[1] - 1)  # Scale x values to heatmap indices
+        y_indices = function(x,*popt) * (heatmap_data.shape[0] - 1)  # Scale y values to heatmap indices
+
+        ax.plot(x_indices, y_indices,'r-',label='fit: %5.3f exp( - %5.3f p_site) + %5.3f' % tuple(popt), zorder=10)
 
         plt.title("Mapa de calor de los datos (p_site, p_bond, time)")
         plt.xlabel("p_site")
         plt.ylabel("p_bond")
+        plt.legend()
         plt.savefig(imagePath+'.png', format='png')
         #plt.show()
 
@@ -330,7 +341,8 @@ class forestFire():
 
         # Rotar para una mejor vista inicial
         ax2.view_init(elev=30, azim=-30)
-
+        
+        
         # Guardar la imagen
         plt.savefig(imagePath + '_3D' +'.png', format='png')
         #plt.show()

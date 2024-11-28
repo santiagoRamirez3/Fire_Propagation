@@ -1,6 +1,8 @@
 from classes.regular import simulation
 from classes.voronoi import voronoi_fire
 
+from classes.fit import fitting
+
 from menu import menu
 import numpy as np
 from scipy.spatial import Voronoi
@@ -180,8 +182,10 @@ if __name__ == '__main__':
             file_name = "datos.csv"
             name = 'squaredCompareProbabilities'
             imagePath = routes_dict['squared'] + name
+            propTimeThreshold = 150
+            
             forest = simulation.squareForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix) 
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix,propTimeThreshold) 
             
             
         elif tessellation == 2:
@@ -190,8 +194,10 @@ if __name__ == '__main__':
             file_name = "datos.csv"
             name = 'triangularCompareProbabilities'
             imagePath = routes_dict['triangular'] + name
+            propTimeThreshold = 215
+            
             forest = simulation.triangularForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix) 
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix,propTimeThreshold) 
             
         elif tessellation == 3:
             
@@ -199,8 +205,10 @@ if __name__ == '__main__':
             file_name = "datos.csv"
             name = 'hexagonalCompareProbabilities'
             imagePath = routes_dict['hexagon'] + name
+            propTimeThreshold = 150
+            
             forest = simulation.heaxgonalForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix) 
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix,propTimeThreshold) 
         
         elif tessellation == 4:
             nPoints = 10000
@@ -208,11 +216,13 @@ if __name__ == '__main__':
             vor = Voronoi(points)
             folder_path = data_route['voronoi']
             file_name = "datos.csv"
+            propTimeThreshold = 150
+            
 
             name = 'voronoiCompareProbabilities'
             imagePath = routes_dict['voronoi'] + name
             forest = voronoi_fire.voronoiFire(burningThreshold=0.95, occuProba=0.95, voronoi=vor, initialFire=1)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name) 
+            forest.compareBondSite(200,15,imagePath,folder_path, file_name,propTimeThreshold) 
         
         else:
             print('That is not an option, try again.')
@@ -264,6 +274,10 @@ if __name__ == '__main__':
 
                     voronoi = voronoi_fire.voronoiFire(burningThreshold=probability, occuProba=0.95, voronoi=vor, initialFire=1)
                     voronoi.animate(route)
+    
+    elif usrChoice == 7:
+        saveRoute = routes_dict['voronoi']
+        fitting.expFit(dataRoute='data/voronoi/datos.csv',propTimeThreshold=130,saveRoute=saveRoute)
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     
