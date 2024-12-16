@@ -8,6 +8,7 @@ import pandas as pd
 import seaborn as sns
 from scipy.optimize import curve_fit
 import os
+import joblib
 
 from classes.fit.fitting import expFit
 
@@ -185,12 +186,20 @@ class voronoiFire():
             p_bond = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
             P_site, P_bond = np.meshgrid(p_site, p_bond)
 
+            # Load to the model for personalized niters
+            rf_model = joblib.load(folder_path.strip('/')[-1] + '3d_function_model.pkl')
+            
             time = np.zeros(len(p_site)*len(p_bond))  # Ejemplo de datos para z
 
             count = 0
             for ps in p_site:
                 print(ps)
                 for pb in p_bond:
+                    # Apply criteria for n_iter
+                    expected_gradient = rf_model.predict(np.array([[pb,ps]]))
+                    
+                    
+                    
                     times_for_average = np.ones(n_iter, dtype=int)
                     for i in range(n_iter):
                         self.status = np.copy(self.initialConfiguration)

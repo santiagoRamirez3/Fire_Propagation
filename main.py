@@ -3,11 +3,11 @@ from classes.voronoi import voronoi_fire
 
 from classes.fit import fitting
 
-from menu import menu
+from scripts.menu import menu
 import numpy as np
 from scipy.spatial import Voronoi
 
-from routes import routes_dict, data_route
+from scripts.routes import routes_dict, data_route
 
 
 if __name__ == '__main__':

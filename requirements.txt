@@ -6,6 +6,7 @@ dask==2024.11.2
 fonttools==4.54.1
 fsspec==2024.10.0
 importlib_metadata==8.5.0
+joblib==1.4.2
 kiwisolver==1.4.7
 locket==1.0.0
 matplotlib==3.9.2
@@ -18,10 +19,12 @@ pyparsing==3.2.0
 python-dateutil==2.9.0.post0
 pytz==2024.2
 PyYAML==6.0.2
+scikit-learn==1.6.0
 scipy==1.14.1
 seaborn==0.13.2
 shapely==2.0.6
 six==1.16.0
+threadpoolctl==3.5.0
 toolz==1.0.0
 tzdata==2024.2
 zipp==3.21.0
