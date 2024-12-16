@@ -7,8 +7,9 @@ import pandas as pd
 import seaborn as sns
 import joblib
 
-from classes.regular.auxiliarfunc import percolation_check, Apply_occupation_proba
+from classes.regular.auxiliarfunc import percolation_check, Apply_occupation_proba, log_criteria_niter
 from classes.fit.fitting import expFit
+
 
 zeroArray = np.zeros(1)
 
@@ -274,8 +275,7 @@ class forestFire():
                     
                     # Apply criteria for n_iter
                     expected_gradient = rf_model.predict(np.array([[pb,ps]]))
-                    
-                    
+                    n_iter = log_criteria_niter(expected_gradient)
                     
                     times_for_average = np.ones(n_iter, dtype=int)
                     for i in range(n_iter):

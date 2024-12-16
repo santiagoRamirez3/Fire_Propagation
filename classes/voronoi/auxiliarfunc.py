@@ -8,3 +8,8 @@ def applyOcupation(array:np.ndarray, occuProba:float):
     modified_array[occupationMask] = 0
 
     return modified_array
+
+
+def log_criteria_niter(x:float):
+    n_iter = int(41* np.ln(1+x) + 2)
+    return n_iter

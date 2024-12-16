@@ -3,7 +3,7 @@ import numpy as np
 from scipy.sparse import csr_matrix, dok_matrix
 from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
-from classes.voronoi.auxiliarfunc import applyOcupation
+from classes.voronoi.auxiliarfunc import applyOcupation, log_criteria_niter
 import pandas as pd
 import seaborn as sns
 from scipy.optimize import curve_fit
@@ -197,8 +197,7 @@ class voronoiFire():
                 for pb in p_bond:
                     # Apply criteria for n_iter
                     expected_gradient = rf_model.predict(np.array([[pb,ps]]))
-                    
-                    
+                    n_iter = log_criteria_niter(expected_gradient)
                     
                     times_for_average = np.ones(n_iter, dtype=int)
                     for i in range(n_iter):
