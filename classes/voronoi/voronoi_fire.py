@@ -187,7 +187,7 @@ class voronoiFire():
             P_site, P_bond = np.meshgrid(p_site, p_bond)
 
             # Load to the model for personalized niters
-            rf_model = joblib.load(folder_path.strip('/')[-1] + '3d_regression_model.pkl')
+            rf_model = joblib.load(folder_path + '3d_regression_model.pkl')
             
             time = np.zeros(len(p_site)*len(p_bond))  # Ejemplo de datos para z
 
