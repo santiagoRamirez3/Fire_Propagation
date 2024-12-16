@@ -61,23 +61,8 @@ def plot_heatmap_and_histogram(xi, yi, normalized_gradient):
     plt.tight_layout()
     plt.show()
 
-# Main function
-def main(file_path:str, file_name:str) -> None:
-    # Load data
-    
-    data = load_data(file_path + file_name)
-    x, y, z = data['P_site'].values, data['P_bond'].values, data['time'].values
-    
-    # Interpolate data onto a grid
-    xi, yi, zi = create_grid(x, y, z)
-
-    # Compute gradient magnitude
-    gradient_magnitude = compute_gradients(xi, yi, zi)
-
-    # Normalize gradient magnitude
-    normalized_gradient = normalize_data(gradient_magnitude)
-    
-    # Applyregression using Random Forest
+def create_rf_model(xi,yi,normalized_gradient):
+ # Applyregression using Random Forest
     # Flatten the meshgrid into arrays
     x_flat = xi.ravel()
     y_flat = yi.ravel()
@@ -100,8 +85,11 @@ def main(file_path:str, file_name:str) -> None:
     #print("Mean Squared Error:", mean_squared_error(y_test, y_pred))   #Around 0.0009
     
     # Save the model using joblib
-    joblib.dump(model, file_path + '3d_regression_model.pkl')
+    joblib.dump(model, file_path + '3d_regression_model.pkl' ,compress=('zlib', 3)) # compressing on level 3 to not mess with performance
+
+def plot_real_vs_predicted(file_path,xi,yi,normalized_gradient):
     
+    model = joblib.load(file_path + '3d_regression_model.pkl')
     
     # Evaluate the model on the original meshgrid
     original_features = np.column_stack((xi.ravel(), yi.ravel()))
@@ -127,16 +115,37 @@ def main(file_path:str, file_name:str) -> None:
     ax2.set_zlabel("Z")
     
     plt.savefig(file_path + 'predicted.png')
+
+# Main function
+def main(file_path:str, file_name:str) -> None:
+    # Load data
+    
+    data = load_data(file_path + file_name)
+    x, y, z = data['P_site'].values, data['P_bond'].values, data['time'].values
+    
+    # Interpolate data onto a grid
+    xi, yi, zi = create_grid(x, y, z)
+
+    # Compute gradient magnitude
+    gradient_magnitude = compute_gradients(xi, yi, zi)
+
+    # Normalize gradient magnitude
+    normalized_gradient = normalize_data(gradient_magnitude)
+    
+    # Generate model if necessary
+    create_rf_model(xi,yi,normalized_gradient)
+    
+    # Save plot real vs predicted loading the regression rf model
+    plot_real_vs_predicted(file_path,xi,yi,normalized_gradient)
     
     # Plot heatmap and histogram
     #plot_heatmap_and_histogram(xi, yi, normalized_gradient)
 
 # Example usage
 if __name__ == "__main__":
-    file_path = r'data/voronoi/'  # Update with your CSV file path
+    file_path = r'data/voronoi/'  
     file_name = 'datos.csv'
     main(file_path, file_name)
 
     # Load the model and plot to verify
-    
     
