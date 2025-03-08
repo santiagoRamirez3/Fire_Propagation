@@ -171,7 +171,7 @@ class voronoiFire():
             if perimeter > max_length:
                 self.status[i] = 0
     
-    def compareBondSite(self,resolution:int,n_iter:int, imagePath, folder_path, file_name,propTimeThreshold:int=120):
+    def compareBondSite(self,resolution:int, imagePath, folder_path, file_name,propTimeThreshold:int=120):
         # Verificar si la carpeta existe, si no, crearla
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -193,10 +193,10 @@ class voronoiFire():
 
             count = 0
             for ps in p_site:
-                print(ps)
+                #print(ps)
                 for pb in p_bond:
                     # Apply criteria for n_iter
-                    expected_gradient = rf_model.predict(np.array([[pb,ps]]))
+                    expected_gradient = rf_model.predict(np.array([[ps,pb]]))
                     n_iter = log_criteria_niter(expected_gradient)
                     
                     times_for_average = np.ones(n_iter, dtype=int)
@@ -205,8 +205,8 @@ class voronoiFire():
                         times_for_average[i] = self.propagateFire(ps,pb)
                     time[count] = np.mean(times_for_average)
                     count += 1
-                print(ps)
-
+                print(f"\r{ps}", end='', flush=True)
+            print('\n')
             data = pd.DataFrame({
                 'P_site': P_site.flatten(),
                 'P_bond': P_bond.flatten(),
@@ -221,7 +221,7 @@ class voronoiFire():
 
         # Crear un mapa de calor
         print("Generando mapa de calor...")
-        heatmap_data = data.pivot_table(index='P_site', columns='P_bond', values='time')
+        heatmap_data = data.pivot_table(index='P_bond', columns='P_site', values='time')
         plt.figure(figsize=(10, 8))
         ax = sns.heatmap(heatmap_data, cmap='viridis', cbar_kws={'label': 'Valor de tiempo'})
 

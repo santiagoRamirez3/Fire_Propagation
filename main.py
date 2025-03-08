@@ -179,50 +179,50 @@ if __name__ == '__main__':
         if tessellation == 1:
             
             folder_path = data_route['squared']
-            file_name = "datos.csv"
-            name = 'squaredCompareProbabilities'
+            file_name = "datos_alta_resolucion.csv"
+            name = 'squaredCompareProbabilities_alta_resolucion'
             imagePath = routes_dict['squared'] + name
             propTimeThreshold = 150
             
             forest = simulation.squareForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix,propTimeThreshold) 
+            forest.compareBondSite(1000,imagePath,folder_path, file_name,matrix, 'squared', propTimeThreshold) 
             
             
         elif tessellation == 2:
             
             folder_path = data_route['triangular']
-            file_name = "datos.csv"
-            name = 'triangularCompareProbabilities'
+            file_name = "datos_alta_resolucion.csv"
+            name = 'triangularCompareProbabilities_alta_resolucion'
             imagePath = routes_dict['triangular'] + name
             propTimeThreshold = 215
             
             forest = simulation.triangularForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix,propTimeThreshold) 
+            forest.compareBondSite(1000,imagePath,folder_path, file_name,matrix, 'triangular',propTimeThreshold) 
             
         elif tessellation == 3:
             
             folder_path = data_route['hexagon']
-            file_name = "datos.csv"
-            name = 'hexagonalCompareProbabilities'
+            file_name = "datos_alta_resolucion.csv"
+            name = 'hexagonalCompareProbabilities_alta_resolucion'
             imagePath = routes_dict['hexagon'] + name
             propTimeThreshold = 150
             
             forest = simulation.heaxgonalForest(burningThreshold=0.95,occuProba=0.95 ,initialForest=matrix)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,matrix,propTimeThreshold) 
+            forest.compareBondSite(1000,imagePath,folder_path, file_name,matrix, 'hexagonal',propTimeThreshold) 
         
         elif tessellation == 4:
             nPoints = 10000
             points = np.random.rand(nPoints, 2)
             vor = Voronoi(points)
             folder_path = data_route['voronoi']
-            file_name = "datos.csv"
+            file_name = "datos_alta_resolucion.csv"
             propTimeThreshold = 150
             
 
-            name = 'voronoiCompareProbabilities'
+            name = 'voronoiCompareProbabilities_alta_resolucion'
             imagePath = routes_dict['voronoi'] + name
             forest = voronoi_fire.voronoiFire(burningThreshold=0.95, occuProba=0.95, voronoi=vor, initialFire=1)
-            forest.compareBondSite(200,15,imagePath,folder_path, file_name,propTimeThreshold) 
+            forest.compareBondSite(1000,imagePath,folder_path, file_name, propTimeThreshold) 
         
         else:
             print('That is not an option, try again.')

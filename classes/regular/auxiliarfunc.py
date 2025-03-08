@@ -43,5 +43,5 @@ def Apply_occupation_proba(array:np.ndarray, occuProba:float):
 # ===============================================================
 
 def log_criteria_niter(x:float):
-    n_iter = int(41* np.ln(1+x) + 2)
+    n_iter = int(41* np.log(1+x) + 3)
     return n_iter

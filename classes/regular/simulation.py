@@ -249,7 +249,10 @@ class forestFire():
         #print(log_meanM)
         return B
         
-    def compareBondSite(self,resolution:int,n_iter:int, imagePath, folder_path, file_name, matrix,propTimeThreshold:int=120):
+    def compareBondSite(self,resolution:int, imagePath,
+                        folder_path, file_name, matrix,
+                        tesellation_type:str,
+                        propTimeThreshold:int=120):
         # Verificar si la carpeta existe, si no, crearla
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -262,7 +265,7 @@ class forestFire():
             print("Archivo no encontrado. Creando archivo .csv...")
             p_site = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
             p_bond = np.linspace(0, 1., resolution)  # Valores de 0 a 1 con paso 0.1
-            P_site, P_bond = np.meshgrid(p_site, p_bond)
+            P_bond, P_site = np.meshgrid(p_bond, p_site)
 
             # Load to the model for personalized niters
             rf_model = joblib.load(folder_path  + '3d_regression_model.pkl')
@@ -274,7 +277,7 @@ class forestFire():
                 for pb in p_bond:
                     
                     # Apply criteria for n_iter
-                    expected_gradient = rf_model.predict(np.array([[pb,ps]]))
+                    expected_gradient = rf_model.predict(np.array([[ps,pb]]))
                     n_iter = log_criteria_niter(expected_gradient)
                     
                     times_for_average = np.ones(n_iter, dtype=int)
@@ -299,9 +302,13 @@ class forestFire():
 
         # Crear un mapa de calor
         print("Generando mapa de calor...")
-        heatmap_data = data.pivot_table(index='P_site', columns='P_bond', values='time')
+        heatmap_data = data.pivot_table(index='P_bond', columns='P_site', values='time')
         plt.figure(figsize=(10, 8))
-        ax = sns.heatmap(heatmap_data, cmap='viridis', cbar_kws={'label': 'Valor de tiempo'})
+        ax = sns.heatmap(heatmap_data, cmap='viridis', cbar_kws={'label': '\nTime (a.u)'})
+
+        # Customize the size of the colorbar label
+        cbar = ax.collections[0].colorbar
+        cbar.set_label('\nTime (a.u)', fontsize=15)
 
         # Configurar ticks manualmente
         ticks = np.arange(0, 1.1, 0.1)  # De 0 a 1 en pasos de 0.1
@@ -319,12 +326,13 @@ class forestFire():
         x_indices = x * (heatmap_data.shape[1] - 1)  # Scale x values to heatmap indices
         y_indices = function(x,*popt) * (heatmap_data.shape[0] - 1)  # Scale y values to heatmap indices
 
-        ax.plot(x_indices, y_indices,'r-',label='fit: %5.3f exp( - %5.3f p_site) + %5.3f' % tuple(popt), zorder=10)
+        ax.plot(x_indices, y_indices,'r-',label='fit: $%5.1f \\, exp( - %5.1f  P_{occupancy}) + %5.1f$' % tuple(popt), zorder=10)
 
-        plt.title("Mapa de calor de los datos (p_site, p_bond, time)")
-        plt.xlabel("p_site")
-        plt.ylabel("p_bond")
-        plt.legend()
+        plt.title(f"Comparative heat map for {tesellation_type} tesellation", size=20)
+        plt.xlabel(r"$P_{occupancy}$", size=15)
+        plt.ylabel(r"$P_{spread}$", size=15)
+        plt.legend(loc='upper left', fontsize=13)
+        plt.tight_layout()
         plt.savefig(imagePath+'.png', format='png')
         #plt.show()
 
@@ -332,6 +340,7 @@ class forestFire():
         X, Y = np.meshgrid(heatmap_data.columns.astype(float), heatmap_data.index.astype(float))
         Z = heatmap_data.values
 
+        #------------------------------------------------------------------------------------------
         # Crear la figura y el gráfico 3D
         fig2 = plt.figure(figsize=(12, 8))
         ax2 = fig2.add_subplot(111, projection='3d')
